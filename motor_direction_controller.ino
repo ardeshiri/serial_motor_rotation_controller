@@ -1,6 +1,6 @@
 
 bool started = false;
-
+uint32_t HB_counter_I = 0;
 void stop_m()
 {
   digitalWrite(A4, HIGH);
@@ -24,41 +24,60 @@ void setup() {
   pinMode(A4, OUTPUT);
   pinMode(A5, OUTPUT);
   stop_m();
-  Serial.begin(9600);
+  Serial.begin(57600);
   while (!Serial);
 }
 
 void loop() {
  if (Serial.available() > 0) {
+    HB_counter_I = 0;
     String str = Serial.readStringUntil('@');
-    if (str.equals("off"))
+    if (str.equals("query"))
+    {
+      Serial.println("motor_controller");
+      Serial.flush();
+    }
+    else if (str.equals("off"))
     {
       stop_m();
-      Serial.println("motor_controller off");
       started = false;
-      delay(100);
+      Serial.println("off");
+      Serial.flush();
     }
-    
-    if (str.equals("on"))
+    else if (str.equals("on"))
     {
-      Serial.println("motor_controller on");
       started = true;
-      delay(100);
+      Serial.println("on");
+      Serial.flush();
     }
-    
-    if (started && str.equals("stop") )
+    else if (started && str.equals("stp") )
     {
       stop_m();
+      Serial.println("stp");
+      Serial.flush();
     }
-      
-    if (started && str.equals("forwards") )
+    else if (started && str.equals("fwd") )
     {
       forward_m();
+      Serial.println("fwd");
+      Serial.flush();
     }
-    
-    if (started && str.equals("backwards") )
+    else if (started && str.equals("bwd") )
     {
       backward_m();
+      Serial.println("bwd");
+      Serial.flush();
     }
-  } 
+  }
+  else
+  {  
+    HB_counter_I++;
+    if(HB_counter_I >= 1000000)
+    {
+      HB_counter_I = 0;
+      Serial.println("Heart_broken_stop");
+      Serial.flush();
+      stop_m();
+    }
+  }
 }
